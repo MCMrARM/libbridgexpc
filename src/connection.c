@@ -10,9 +10,12 @@ static int _bridge_xpc_send_hello(struct bridge_xpc_connection *conn);
 static void _bridge_xpc_connection_process_recv_msg(struct bridge_xpc_connection *conn,
         struct bridge_xpc_header *header, const uint8_t *data);
 
-void bridge_xpc_connection_init(struct bridge_xpc_connection *conn, struct bridge_xpc_connection_callbacks *cbs,
-        void *transport_data) {
+void bridge_xpc_connection_init(struct bridge_xpc_connection *conn,
+        struct bridge_xpc_connection_callbacks *cbs, void *userdata,
+        struct bridge_xpc_connection_transport_callbacks *transport_cbs, void *transport_data) {
     conn->cbs = *cbs;
+    conn->userdata = userdata;
+    conn->transport_cbs = *transport_cbs;
     conn->transport_data = transport_data;
     conn->recv_header_pos = 0;
     conn->recv_data_pos = 0;
@@ -21,6 +24,8 @@ void bridge_xpc_connection_init(struct bridge_xpc_connection *conn, struct bridg
 
 void bridge_xpc_connection_notify_connected(struct bridge_xpc_connection *conn) {
     _bridge_xpc_send_hello(conn);
+    if (conn->cbs.connected)
+        conn->cbs.connected(conn, conn->userdata);
 }
 
 void bridge_xpc_connection_process_recv(struct bridge_xpc_connection *conn, const uint8_t *data, size_t len) {
@@ -97,7 +102,7 @@ int bridge_xpc_connection_send_raw(struct bridge_xpc_connection *conn, int type,
     header.version = BRIDGE_XPC_VERSION;
     header.type = type;
     header.length = len;
-    return conn->cbs.write(conn, (uint8_t *) &header, sizeof(header), data, len, transfer_data_ownership);
+    return conn->transport_cbs.write(conn, (uint8_t *) &header, sizeof(header), data, len, transfer_data_ownership);
 }
 
 int bridge_xpc_connection_send(struct bridge_xpc_connection *conn, plist_t data) {
@@ -130,5 +135,8 @@ static void _bridge_xpc_connection_process_recv_msg(struct bridge_xpc_connection
         plist_to_xml(pdata, &str_data, &len);
         printf("bridgexpc: Got remote plist: %s\n", str_data);
         free(str_data);
+
+        if (conn->cbs.message_received)
+            conn->cbs.message_received(conn, pdata, conn->userdata);
     }
 }

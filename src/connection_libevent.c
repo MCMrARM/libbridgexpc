@@ -59,11 +59,12 @@ static int _bridge_xpc_libevent_connection_write(struct bridge_xpc_connection *c
     return 0;
 }
 
-struct bridge_xpc_libevent_connection *bridge_xpc_libevent_connection_create(struct event_base *evbase) {
+struct bridge_xpc_libevent_connection *bridge_xpc_libevent_connection_create(struct event_base *evbase,
+        struct bridge_xpc_connection_callbacks *cbs, void *userdata) {
     struct bridge_xpc_libevent_connection *evconn = malloc(sizeof(struct bridge_xpc_libevent_connection));
-    struct bridge_xpc_connection_callbacks cbs;
-    cbs.write = _bridge_xpc_libevent_connection_write;
-    bridge_xpc_connection_init(&evconn->conn, &cbs, evconn);
+    struct bridge_xpc_connection_transport_callbacks tcbs;
+    tcbs.write = _bridge_xpc_libevent_connection_write;
+    bridge_xpc_connection_init(&evconn->conn, cbs, userdata, &tcbs, evconn);
     evconn->bev = bufferevent_socket_new(evbase, -1, BEV_OPT_DEFER_CALLBACKS | BEV_OPT_CLOSE_ON_FREE);
     bufferevent_enable(evconn->bev, EV_READ | EV_WRITE);
     bufferevent_setcb(evconn->bev, _bridge_xpc_ev_read_callback, NULL, _bridge_xpc_ev_event_callback,

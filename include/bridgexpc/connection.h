@@ -9,11 +9,17 @@
 
 struct bridge_xpc_connection;
 struct bridge_xpc_connection_callbacks {
+    void (*connected)(struct bridge_xpc_connection *conn, void *userdata);
+    void (*message_received)(struct bridge_xpc_connection *conn, plist_t data, void *userdata);
+};
+struct bridge_xpc_connection_transport_callbacks {
     int (*write)(struct bridge_xpc_connection *conn, const uint8_t *header_data, size_t header_length,
             const uint8_t *data, size_t len, bool transfer_data_ownership);
 };
 struct bridge_xpc_connection {
     struct bridge_xpc_connection_callbacks cbs;
+    void *userdata;
+    struct bridge_xpc_connection_transport_callbacks transport_cbs;
     void *transport_data;
 
     size_t recv_header_pos;
@@ -23,8 +29,9 @@ struct bridge_xpc_connection {
 };
 
 
-void bridge_xpc_connection_init(struct bridge_xpc_connection *conn, struct bridge_xpc_connection_callbacks *cbs,
-        void *transport_data);
+void bridge_xpc_connection_init(struct bridge_xpc_connection *conn,
+        struct bridge_xpc_connection_callbacks *cbs, void *userdata,
+        struct bridge_xpc_connection_transport_callbacks *transport_cbs, void *transport_data);
 
 void bridge_xpc_connection_notify_connected(struct bridge_xpc_connection *conn);
 
