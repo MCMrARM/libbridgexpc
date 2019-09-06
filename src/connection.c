@@ -6,12 +6,14 @@
 #include <assert.h>
 #include <malloc.h>
 
-static void _bridge_xpc_send_hello(struct bridge_xpc_connection *conn);
+static int _bridge_xpc_send_hello(struct bridge_xpc_connection *conn);
 static void _bridge_xpc_connection_process_recv_msg(struct bridge_xpc_connection *conn,
         struct bridge_xpc_header *header, const uint8_t *data);
 
-void bridge_xpc_connection_init(struct bridge_xpc_connection *conn, struct bridge_xpc_connection_callbacks *cbs) {
+void bridge_xpc_connection_init(struct bridge_xpc_connection *conn, struct bridge_xpc_connection_callbacks *cbs,
+        void *transport_data) {
     conn->cbs = *cbs;
+    conn->transport_data = transport_data;
     conn->recv_header_pos = 0;
     conn->recv_data_pos = 0;
     conn->recv_data = NULL;
@@ -55,7 +57,7 @@ void bridge_xpc_connection_process_recv(struct bridge_xpc_connection *conn, cons
                 fprintf(stderr, "bridgexpc: recv message too long: %" PRIu64 "\n", header->length);
                 return;
             }
-            printf("bridgexpc: starting data read of %" PRIu64 "\n", header->length);
+            // printf("bridgexpc: starting data read of %" PRIu64 "\n", header->length);
         }
 
         // Read the data
@@ -88,17 +90,17 @@ void bridge_xpc_connection_process_recv(struct bridge_xpc_connection *conn, cons
     }
 }
 
-void bridge_xpc_connection_send_raw(struct bridge_xpc_connection *conn, int type, const uint8_t *data, size_t len,
+int bridge_xpc_connection_send_raw(struct bridge_xpc_connection *conn, int type, const uint8_t *data, size_t len,
         bool transfer_data_ownership) {
     struct bridge_xpc_header header;
     header.magic = BRIDGE_XPC_MAGIC;
     header.version = BRIDGE_XPC_VERSION;
     header.type = type;
     header.length = len;
-    conn->cbs.write(conn, (uint8_t *) &header, sizeof(header), data, len, transfer_data_ownership);
+    return conn->cbs.write(conn, (uint8_t *) &header, sizeof(header), data, len, transfer_data_ownership);
 }
 
-void bridge_xpc_connection_send(struct bridge_xpc_connection *conn, plist_t data) {
+int bridge_xpc_connection_send(struct bridge_xpc_connection *conn, plist_t data) {
     uint32_t len;
     char *bin_data;
     plist_to_xml(data, &bin_data, &len);
@@ -106,12 +108,13 @@ void bridge_xpc_connection_send(struct bridge_xpc_connection *conn, plist_t data
     free(bin_data);
 
     plist_to_bin(data, &bin_data, &len);
-    bridge_xpc_connection_send_raw(conn, BRIDGE_XPC_DATA, (uint8_t *) bin_data, len, true);
+    return bridge_xpc_connection_send_raw(conn, BRIDGE_XPC_DATA, (uint8_t *) bin_data, len, true);
 }
 
-static void _bridge_xpc_send_hello(struct bridge_xpc_connection *conn) {
+static int _bridge_xpc_send_hello(struct bridge_xpc_connection *conn) {
     // The remote doesn't parse the JSON anyways so there's no reason for us to try harder than this
-    bridge_xpc_connection_send_raw(conn, BRIDGE_XPC_HELLO, (const uint8_t *) "{}", 2, false);
+    printf("bridgexpc: Send hello: {}\n");
+    return bridge_xpc_connection_send_raw(conn, BRIDGE_XPC_HELLO, (const uint8_t *) "{}", 2, false);
 }
 
 static void _bridge_xpc_connection_process_recv_msg(struct bridge_xpc_connection *conn,

@@ -9,11 +9,12 @@
 
 struct bridge_xpc_connection;
 struct bridge_xpc_connection_callbacks {
-    void (*write)(struct bridge_xpc_connection *conn, const uint8_t *header_data, size_t header_length,
+    int (*write)(struct bridge_xpc_connection *conn, const uint8_t *header_data, size_t header_length,
             const uint8_t *data, size_t len, bool transfer_data_ownership);
 };
 struct bridge_xpc_connection {
     struct bridge_xpc_connection_callbacks cbs;
+    void *transport_data;
 
     size_t recv_header_pos;
     uint8_t recv_header_data[sizeof(struct bridge_xpc_header)];
@@ -22,15 +23,16 @@ struct bridge_xpc_connection {
 };
 
 
-void bridge_xpc_connection_init(struct bridge_xpc_connection *conn, struct bridge_xpc_connection_callbacks *cbs);
+void bridge_xpc_connection_init(struct bridge_xpc_connection *conn, struct bridge_xpc_connection_callbacks *cbs,
+        void *transport_data);
 
 void bridge_xpc_connection_notify_connected(struct bridge_xpc_connection *conn);
 
 void bridge_xpc_connection_process_recv(struct bridge_xpc_connection *conn, const uint8_t *data, size_t len);
 
-void bridge_xpc_connection_send_raw(struct bridge_xpc_connection *conn, int type, const uint8_t *data, size_t len,
+int bridge_xpc_connection_send_raw(struct bridge_xpc_connection *conn, int type, const uint8_t *data, size_t len,
         bool transfer_data_ownership);
 
-void bridge_xpc_connection_send(struct bridge_xpc_connection *conn, plist_t data);
+int bridge_xpc_connection_send(struct bridge_xpc_connection *conn, plist_t data);
 
 #endif //BRIDGE_CONNECTION_H

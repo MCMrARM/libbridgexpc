@@ -12,8 +12,8 @@ struct bridge_xpc_header {
 };
 
 enum bridge_xpc_message_type {
-    BRIDGE_XPC_HELLO = 0,
-    BRIDGE_XPC_DATA = 1
+    BRIDGE_XPC_HELLO = 1,
+    BRIDGE_XPC_DATA = 2
 };
 
 #endif //BRDIGE_PROTOCOL_H
