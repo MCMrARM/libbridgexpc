@@ -107,11 +107,11 @@ int bridge_xpc_connection_send_raw(struct bridge_xpc_connection *conn, int type,
 
 int bridge_xpc_connection_send(struct bridge_xpc_connection *conn, plist_t data) {
     uint32_t len;
-    char *bin_data;
+    char *bin_data = NULL;
     plist_to_xml(data, &bin_data, &len);
     printf("bridgexpc: Send plist: %s\n", bin_data);
     free(bin_data);
-
+    bin_data = NULL;
     plist_to_bin(data, &bin_data, &len);
     return bridge_xpc_connection_send_raw(conn, BRIDGE_XPC_DATA, (uint8_t *) bin_data, len, true);
 }
@@ -129,7 +129,7 @@ static void _bridge_xpc_connection_process_recv_msg(struct bridge_xpc_connection
     } else if (header->type == BRIDGE_XPC_DATA) {
         plist_t pdata;
         uint32_t len;
-        char *str_data;
+        char *str_data = NULL;
         plist_from_bin((const char *) data, header->length, &pdata);
 
         plist_to_xml(pdata, &str_data, &len);
