@@ -15,8 +15,7 @@ struct bridge_xpc_libevent_connection {
     struct evbuffer *out;
 };
 
-struct bridge_xpc_libevent_connection *bridge_xpc_libevent_connection_create(struct event_base *evbase,
-        struct bridge_xpc_connection_callbacks *cbs, void *userdata);
+struct bridge_xpc_libevent_connection *bridge_xpc_libevent_connection_create(struct event_base *evbase);
 
 #ifdef __cplusplus
 }

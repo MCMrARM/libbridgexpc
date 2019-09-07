@@ -11,15 +11,20 @@ static void _bridge_xpc_connection_process_recv_msg(struct bridge_xpc_connection
         struct bridge_xpc_header *header, const uint8_t *data);
 
 void bridge_xpc_connection_init(struct bridge_xpc_connection *conn,
-        struct bridge_xpc_connection_callbacks *cbs, void *userdata,
         struct bridge_xpc_connection_transport_callbacks *transport_cbs, void *transport_data) {
-    conn->cbs = *cbs;
-    conn->userdata = userdata;
+    conn->cbs = (struct bridge_xpc_connection_callbacks) {0};
+    conn->userdata = NULL;
     conn->transport_cbs = *transport_cbs;
     conn->transport_data = transport_data;
     conn->recv_header_pos = 0;
     conn->recv_data_pos = 0;
     conn->recv_data = NULL;
+}
+
+void bridge_xpc_connection_set_callbacks(struct bridge_xpc_connection *conn,
+        struct bridge_xpc_connection_callbacks *cbs, void *userdata) {
+    conn->cbs = *cbs;
+    conn->userdata = userdata;
 }
 
 void bridge_xpc_connection_notify_connected(struct bridge_xpc_connection *conn) {

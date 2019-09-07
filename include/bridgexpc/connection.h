@@ -34,8 +34,10 @@ struct bridge_xpc_connection {
 
 
 void bridge_xpc_connection_init(struct bridge_xpc_connection *conn,
-        struct bridge_xpc_connection_callbacks *cbs, void *userdata,
         struct bridge_xpc_connection_transport_callbacks *transport_cbs, void *transport_data);
+
+void bridge_xpc_connection_set_callbacks(struct bridge_xpc_connection *conn,
+        struct bridge_xpc_connection_callbacks *cbs, void *userdata);
 
 void bridge_xpc_connection_notify_connected(struct bridge_xpc_connection *conn);
 
