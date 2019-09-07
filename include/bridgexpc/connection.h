@@ -7,6 +7,10 @@
 #include <plist/plist.h>
 #include "protocol.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bridge_xpc_connection;
 struct bridge_xpc_connection_callbacks {
     void (*connected)(struct bridge_xpc_connection *conn, void *userdata);
@@ -41,5 +45,9 @@ int bridge_xpc_connection_send_raw(struct bridge_xpc_connection *conn, int type,
         bool transfer_data_ownership);
 
 int bridge_xpc_connection_send(struct bridge_xpc_connection *conn, plist_t data);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //BRIDGE_CONNECTION_H

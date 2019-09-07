@@ -5,6 +5,10 @@
 
 #include <event2/bufferevent.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct bridge_xpc_libevent_connection {
     struct bridge_xpc_connection conn;
     struct bufferevent *bev;
@@ -13,5 +17,9 @@ struct bridge_xpc_libevent_connection {
 
 struct bridge_xpc_libevent_connection *bridge_xpc_libevent_connection_create(struct event_base *evbase,
         struct bridge_xpc_connection_callbacks *cbs, void *userdata);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif //BRIDGE_CONNECTION_LIBEVENT_H
